@@ -100,7 +100,7 @@ consule::consule(PixelWriter& writer, Vector2D<int> pos, Vector2D<int> size) : w
 	FillRectangle(this->writer, this->pos, this->size, {0,0,0});
 }
 
-void consule::ShowCursor(){
+void consule::ShowCursor(void){
 	Vector2D<int> temp;
 	temp.x = this->pos.x + this->cursor.x;
 	temp.y = this->pos.y + this->cursor.y;
@@ -108,7 +108,7 @@ void consule::ShowCursor(){
 	this->cursor_visible = true;
 }
 
-void consule::HideCursor(){
+void consule::HideCursor(void){
 	Vector2D<int> temp;
 	temp.x = this->pos.x + this->cursor.x;
 	temp.y = this->pos.y + this->cursor.y;
@@ -116,7 +116,15 @@ void consule::HideCursor(){
 	this->cursor_visible = false;
 }
 
-void consule::Newline(){
+void consule::ToggleCursor(void){
+	if(this->cursor_visible){
+		this->HideCursor();
+	} else {
+		this->ShowCursor();
+	}
+}
+
+void consule::Newline(void){
 	if(this->cursor.y + 32 > this->size.y){
 		for(int i = this->pos.y; i < this->cursor.y + 16; i++){
 			memcpy(this->writer.PixelAt({0,i}),this->writer.PixelAt({0,i+16}), 4 * this->size.x);
@@ -128,6 +136,7 @@ void consule::Newline(){
 }
 
 void consule::PutString(const char* s){
+	this->HideCursor();
 	while (*s) {
 	    if (*s == '\n' | this->cursor.x + 8 > this->size.x) {
     	  this->Newline();

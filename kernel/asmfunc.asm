@@ -1,8 +1,17 @@
+; asmfunc.asm
+;
+; System V AMD64 Calling Convention
+; Registers: RDI, RSI, RDX, RCX, R8, R9
 
-global SetStack
-SetStack:
-        mov rsp, rdi + 1024 * 1024
-        ret
+bits 64
+section .text
+
+extern kernel_main_stack
+extern KernelMainNewStack
+global KernelMain
+KernelMain
+    mov rsp, kernel_main_stack + 1024 * 1024
+    call KernelMainNewStack
 
 global DisableInt
 DisableInt:
@@ -46,14 +55,14 @@ LoadTR:
 
 global InitSegmentResistors
 InitSegmentResistors:
-	mov ds, 0
-	mov es, 0
-	mov fs, 0
-	mov gs, 0
+	mov ds, dx
+	mov es, dx
+	mov fs, dx
+	mov gs, dx
 	push rbp
 	mov rbp, rsp
 	mov ss, si
-	mov rax .next
+	mov rax, .next
 	push rdi
 	push rax
 	o64 retf
@@ -62,7 +71,7 @@ InitSegmentResistors:
 	pop rbp
 	ret
 	
-~            
+            
 global SetCR3
 SetCR3:
 	mov cr3, rdi

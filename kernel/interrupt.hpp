@@ -32,4 +32,4 @@ void SetIDTEntry(InterruptDescriptor& desc,
                  uint64_t offset,
                  uint16_t segment_selector);
 
-void NotifyEndOfInterrupt();
+void NotifyEndOfInterrupt(void);

@@ -48,11 +48,11 @@ class consule {
 	public:
 		consule(PixelWriter& writer);
 		consule(PixelWriter& writer, Vector2D<int> pos, Vector2D<int> size);
-		~consule() = default;
-		void ShowCursor();
-		void HideCursor();
-		void toggleCursor();
-		void Newline();
+		~consule(void) = default;
+		void ShowCursor(void);
+		void HideCursor(void);
+		void ToggleCursor(void);
+		void Newline(void);
 		void PutString(const char* s);
 
 	private:

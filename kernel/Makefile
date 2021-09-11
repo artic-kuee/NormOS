@@ -1,5 +1,5 @@
 TARGET = kernel.elf
-OBJS = main.o graphics.o hankaku.o newlib_support.o libcxx_support.o asmfunc.o segment.o
+OBJS = main.o graphics.o hankaku.o newlib_support.o libcxx_support.o asmfunc.o segment.o memorymanager.o
 
 
 

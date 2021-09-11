@@ -1,6 +1,8 @@
 #include "graphics.hpp"
 #include "asmfunc.h"
 #include "segment.hpp"
+#include "memorymanager.hpp"
+#include "memory_map.hpp"
 
 #include "asmfunc.h"
 
@@ -10,13 +12,14 @@ PixelWriter* pixel_writer;
 char main_consule_buf[sizeof(consule)];
 consule* main_consule;
 
-extern "C" void kernelmain(const FrameBufferConfig& frame_buffer_config_ref) {
-	SetStack(*kernel_main_stack);
-	SetupSegment();
-//	SetupMemoryManager(memorymap_ref);
+extern "C" void KernelMainNewStack(const FrameBufferConfig& frame_buffer_config_ref, const MemoryMap& memory_map_ref) {
 	InitGraphics(frame_buffer_config_ref);
-	main_consule->PutString("hello world\n");
-	//WriteString(*pixel_writer, Vector2D<int>{100,100},  "Hello World", {255,255,255});
+	main_consule->PutString("hello world\n NormOS");
+	SetupSegment();
+	SetupIPageTable();
+	SetupMemoryManager(memory_map_ref);
+	SetupHeap();
+	main_consule->ShowCursor();
 	while(1);
 }
 
