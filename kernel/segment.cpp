@@ -50,8 +50,10 @@ void SetupSegment(void){
 	SetCodeSegment(gdt[4], DescriptorType::kExecuteRead, 3, 0, 0xfffff);
 	SetDataSegment(gdt[2], DescriptorType::kReadWrite, 0, 0, 0xfffff);
 	SetDataSegment(gdt[3], DescriptorType::kReadWrite, 3, 0, 0xfffff);
-	tss[1] = reinterpret_cast<uint64_t>(tss_stack + 8*sizeof(tss_stack)) & 0xffffffff;
+	tss[1] = reinterpret_cast<uint64_t>(tss_stack + 8*sizeof(tss_stack)) & 0xffffffff; //SetRSP
 	tss[2] = reinterpret_cast<uint64_t>(tss_stack + 8*sizeof(tss_stack)) >> 32;
+	tss[9] = reinterpret_cast<uint64_t>(tss_stack + 8*sizeof(tss_stack)) & 0xffffffff; //SetIST
+	tss[10] = reinterpret_cast<uint64_t>(tss_stack + 8*sizeof(tss_stack)) >> 32;
 	SetSystemSegment(gdt[5], DescriptorType::kTSSAvailable, 0, reinterpret_cast<uint64_t>(&tss[0]) & 0xffffffff, sizeof(tss) - 1);
 	LoadGDT(sizeof(gdt) - 1, reinterpret_cast<uintptr_t>(&gdt[0]));
 	InitSegmentResistors(1<<3, 2<<3, 0);

@@ -1,8 +1,9 @@
 #pragma once
 
-
-#include <cstdint>
 #include "frame_buffer_config.hpp"
+#include <cstdint>
+#include <cstdio>
+
 
 
 struct PixelColor {
@@ -44,11 +45,11 @@ void FillRectangle(PixelWriter& writer, Vector2D<int> pos, Vector2D<int> size, c
 
 void WriteAscii(PixelWriter& writer, Vector2D<int> pos, char c, const PixelColor& color);
 
-class consule {
+class console {
 	public:
-		consule(PixelWriter& writer);
-		consule(PixelWriter& writer, Vector2D<int> pos, Vector2D<int> size);
-		~consule(void) = default;
+		console(PixelWriter& writer);
+		console(PixelWriter& writer, Vector2D<int> pos, Vector2D<int> size);
+		~console(void) = default;
 		void ShowCursor(void);
 		void HideCursor(void);
 		void ToggleCursor(void);
@@ -62,6 +63,10 @@ class consule {
 		const Vector2D<int> size;
 		bool cursor_visible;
 };
+
+int printk(const char* format, ...);
+
+
 
 void WriteString(PixelWriter& writer, Vector2D<int> pos, const char* s, const PixelColor& color);
 void InitGraphics(const FrameBufferConfig& config);

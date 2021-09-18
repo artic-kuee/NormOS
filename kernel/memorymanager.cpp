@@ -11,6 +11,8 @@ namespace {
 	const uint64_t kPageSize2M = 512 * kPageSize4K;
 	const uint64_t kPageSize1G = 512 * kPageSize2M;
 
+	const uint64_t kBytesPerFrame = kPageSize4K;
+
 	const size_t kPageDirectoryCount = 64;
 	
 	alignas(kPageSize4K) std::array<uint64_t, 512> pml4_table;
@@ -32,7 +34,7 @@ namespace {
 	}
 	size_t GetBitConsecutive(size_t frameid){
 		int i = 0;
-		while(GetBit(frameid + i)){
+		while(!GetBit(frameid + i)){
 			i++;
 		}
 		return i;
@@ -47,6 +49,12 @@ namespace {
 
 	size_t range_begin = 0; //
 	size_t range_end = 0;
+	size_t available_pages = 0;
+}
+
+
+size_t ShowAvailablePages(void){
+	return available_pages;
 }
 
 void SetupIPageTable(void) {
@@ -70,6 +78,7 @@ WithError<size_t> Allocate(size_t num_frames){
 		if(GetBitConsecutive(i) > num_frames){
 			MarkAllocated(i, num_frames);
 			range_begin = i + num_frames;
+			available_pages -= num_frames;
 			return {i, MAKE_ERROR(Error::kSuccess)};
 		}
 	}
@@ -77,6 +86,7 @@ WithError<size_t> Allocate(size_t num_frames){
 		if(GetBitConsecutive(i) > num_frames){
 			MarkAllocated(i, num_frames);
 			range_begin = i + num_frames;
+			available_pages -= num_frames;
 			return {i, MAKE_ERROR(Error::kSuccess)};
 		}
 	}
@@ -86,6 +96,7 @@ WithError<size_t> Allocate(size_t num_frames){
 void Free(size_t start_frame, size_t num_frames){
 	for (int i = 0; i < num_frames; i++){
 		ResetBit(start_frame + i);
+		available_pages += num_frames;
 	}
 }
 
@@ -104,14 +115,18 @@ void SetupMemoryManager(const MemoryMap& memory_map){
 	}
 }
 
-extern caddr_t program_break, program_break_end;
+extern "C" caddr_t program_break, program_break_end;
 
-Error SetupHeap(void){
-	const int kHeapFrames = 64*512;
-	const auto heap_start = Allocate(kHeapFrames);
-	if(heap_start.error){
-		return heap_start.error;
-	}
-	program_break = reinterpret_cast<caddr_t>(heap_start.value * kPageSize4K);
-	program_break_end = program_break + kHeapFrames * kPageSize4K;
-}
+
+
+Error SetupHeap(void) {
+    const int kHeapFrames = 64 * 512;
+    const auto heap_start = Allocate(kHeapFrames);
+    if (heap_start.error) {
+      return heap_start.error;
+    }
+
+    program_break = reinterpret_cast<caddr_t>(heap_start.value * kBytesPerFrame);
+    program_break_end = program_break + kHeapFrames * kBytesPerFrame;
+    return MAKE_ERROR(Error::kSuccess);
+  }

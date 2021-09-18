@@ -1,5 +1,4 @@
 #include "graphics.hpp"
-//#include "basicfunc.hpp"
 
 #include <vector>
 #include <algorithm>
@@ -11,8 +10,8 @@ extern const uint8_t _binary_hankaku_bin_size;
 extern char pixel_writer_buf[sizeof(RGBResv8BitPerColorPixelWriter)];
 extern PixelWriter* pixel_writer;
 
-extern char main_consule_buf[sizeof(consule)];
-extern consule* main_consule;
+extern char main_console_buf[sizeof(console)];
+extern console* main_console;
 
 
 PixelColor Tocolor(uint32_t c){
@@ -92,15 +91,15 @@ void WriteAscii(PixelWriter& writer, Vector2D<int> pos, char c, const PixelColor
 	}
 }
 
-consule::consule(PixelWriter& writer) : writer{writer}, pos{Vector2D<int>{0,0}}, size{Vector2D<int>{static_cast<int>(writer.config_.horizontal_resolution),static_cast<int>(writer.config_.vertical_resolution)}}, cursor{Vector2D<int>{0,0}}, cursor_visible{false} {
+console::console(PixelWriter& writer) : writer{writer}, pos{Vector2D<int>{0,0}}, size{Vector2D<int>{static_cast<int>(writer.config_.horizontal_resolution),static_cast<int>(writer.config_.vertical_resolution)}}, cursor{Vector2D<int>{0,0}}, cursor_visible{false} {
 	FillRectangle(this->writer, this->pos, this->size, {0,0,0});
 }
 
-consule::consule(PixelWriter& writer, Vector2D<int> pos, Vector2D<int> size) : writer{writer}, pos{pos}, size{size}, cursor{Vector2D<int>{0,0}}, cursor_visible{false} {
+console::console(PixelWriter& writer, Vector2D<int> pos, Vector2D<int> size) : writer{writer}, pos{pos}, size{size}, cursor{Vector2D<int>{0,0}}, cursor_visible{false} {
 	FillRectangle(this->writer, this->pos, this->size, {0,0,0});
 }
 
-void consule::ShowCursor(void){
+void console::ShowCursor(void){
 	Vector2D<int> temp;
 	temp.x = this->pos.x + this->cursor.x;
 	temp.y = this->pos.y + this->cursor.y;
@@ -108,7 +107,7 @@ void consule::ShowCursor(void){
 	this->cursor_visible = true;
 }
 
-void consule::HideCursor(void){
+void console::HideCursor(void){
 	Vector2D<int> temp;
 	temp.x = this->pos.x + this->cursor.x;
 	temp.y = this->pos.y + this->cursor.y;
@@ -116,7 +115,7 @@ void consule::HideCursor(void){
 	this->cursor_visible = false;
 }
 
-void consule::ToggleCursor(void){
+void console::ToggleCursor(void){
 	if(this->cursor_visible){
 		this->HideCursor();
 	} else {
@@ -124,18 +123,20 @@ void consule::ToggleCursor(void){
 	}
 }
 
-void consule::Newline(void){
+void console::Newline(void){
 	if(this->cursor.y + 32 > this->size.y){
-		for(int i = this->pos.y; i < this->cursor.y + 16; i++){
+		for(int i = this->pos.y; i < this->size.y - 16; i++){
 			memcpy(this->writer.PixelAt({0,i}),this->writer.PixelAt({0,i+16}), 4 * this->size.x);
 		}
+		FillRectangle(this->writer, this->cursor, Vector2D<int>{this->size.x, 16}, {0,0,0});
 	}else{
 		this->cursor.y += 16;
 	}
 	this->cursor.x =0;
 }
 
-void consule::PutString(const char* s){
+void console::PutString(const char* s){
+	bool temp = this->cursor_visible;
 	this->HideCursor();
 	while (*s) {
 	    if (*s == '\n' | this->cursor.x + 8 > this->size.x) {
@@ -146,7 +147,25 @@ void consule::PutString(const char* s){
     	}
     	++s;
 	}
+	if(temp){
+		this->ShowCursor();
+	}
 }
+
+int printk(const char* format, ...) {
+  va_list ap;
+  int result;
+  char s[1024];
+
+  va_start(ap, format);
+  result = vsprintf(s, format, ap);
+  va_end(ap);
+
+  main_console->PutString(s);
+  return result;
+}
+
+
 	
 
 void WriteString(PixelWriter& writer, Vector2D<int> pos, const char* s, const PixelColor& color){
@@ -177,7 +196,7 @@ void InitGraphics(const FrameBufferConfig& config){
 	max.x = config.horizontal_resolution;
 	max.y = config.vertical_resolution;
 	FillRectangle(*pixel_writer, zeros, max, {0,0,0});
-	main_consule = new(main_consule_buf)
-	consule(*pixel_writer);
+	main_console = new(main_console_buf)
+	console(*pixel_writer);
 	return;
 }
